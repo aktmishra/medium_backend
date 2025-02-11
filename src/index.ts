@@ -1,12 +1,13 @@
-import { Hono } from 'hono'
-import { env } from 'hono/adapter'
+ import { Hono } from "hono";
+import userRouter from "./routes/user";
+import postRouter from "./routes/blog";
+ 
 
-const app = new Hono()
+const app = new Hono ();
 
-app.get('/', (c) => {
-   
+app.route("/api/v1/user", userRouter)
+app.route("/api/v1/blog", postRouter)
 
-   return c.text('Hello Hono!')
-})
 
-export default app
+
+export default app;
