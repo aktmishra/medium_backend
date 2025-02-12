@@ -1,3 +1,4 @@
+import { createPostInput, updatePostInput } from "@aktmishra/medium_common";
 import { PrismaClient } from "@prisma/client/edge.js";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
@@ -38,9 +39,10 @@ postRouter.post("/create", async (c) => {
   }).$extends(withAccelerate());
   const authorId = c.get("userId");
   const body = await c.req.json();
-  if (!body.title || !body.content) {
+  const {success} = createPostInput.safeParse(body)
+  if (!success) {
     c.status(400);
-    return c.json({ Message: "Missing required fields:title, or content" });
+    return c.json({ Message: "Missing required fields:title or content" });
   }
   try {
     const post = await prisma.post.create({
@@ -71,6 +73,11 @@ postRouter.put("/update", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
   const body = await c.req.json();
+  const {success} = updatePostInput.safeParse(body)
+  if (!success) {
+    c.status(400);
+    return c.json({ Message: "Missing required fields:title or content" });
+  }
   try {
     const post = await prisma.post.update({
       where: {
