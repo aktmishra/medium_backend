@@ -15,7 +15,7 @@ const postRouter = new Hono<{
 }>();
 
 // varify jwt
-postRouter.use("/*",async (c, next) => {
+postRouter.use("/*", async (c, next) => {
   const token = c.req.header("Authorization");
   if (!token) {
     c.status(403);
@@ -39,7 +39,7 @@ postRouter.post("/create", async (c) => {
   }).$extends(withAccelerate());
   const authorId = c.get("userId");
   const body = await c.req.json();
-  const {success} = createPostInput.safeParse(body)
+  const { success } = createPostInput.safeParse(body);
   if (!success) {
     c.status(400);
     return c.json({ Message: "Missing required fields:title or content" });
@@ -60,6 +60,7 @@ postRouter.post("/create", async (c) => {
     c.status(200);
     return c.json({
       message: "Post Created Successfuly",
+      data: post
     });
   } catch (error) {
     c.status(500);
@@ -73,7 +74,7 @@ postRouter.put("/update", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
   const body = await c.req.json();
-  const {success} = updatePostInput.safeParse(body)
+  const { success } = updatePostInput.safeParse(body);
   if (!success) {
     c.status(400);
     return c.json({ Message: "Missing required fields:title or content" });
@@ -112,7 +113,18 @@ postRouter.get("/bulk", async (c) => {
   }).$extends(withAccelerate());
   // filter : pagination
   try {
-    const post = await prisma.post.findMany();
+    const post = await prisma.post.findMany({
+      select: {
+        content: true,
+        title: true,
+        id: true,
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
     if (!post) {
       c.status(403);
       return c.json({ Message: "Something went wrong while fetching post" });
@@ -139,6 +151,16 @@ postRouter.get("/:id", async (c) => {
     const post = await prisma.post.findFirst({
       where: {
         id: id,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        author: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
     if (!post) {
